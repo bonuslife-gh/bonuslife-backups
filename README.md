@@ -15,11 +15,13 @@ Repo: https://github.com/bonuslife-gh/bonuslife-backups. El workflow `.github/wo
 versionada acá, en `ops/bonuslife-backups/`, con su test de arquitectura) corre todos los días a las 03:00 UTC y se
 puede disparar a mano:
 
-1. Hace `SELECT 1` en `bonuslife-staging` con el rol `bonuslife_keepalive`, que no tiene permisos sobre ninguna
-   tabla (`docs/plataforma/base-de-datos.md`). El plan Free de Supabase pausa el proyecto a los 7 días sin actividad.
-2. Deja un commit de latido (`latido.txt`): GitHub desactiva los cron de un repo público tras 60 días sin commits.
+1. Escribe un latido en la tabla `heartbeats` de `bonuslife-staging` (y borra los de más de 30 días) con el rol
+   `bonuslife_keepalive`, cuyo único permiso es esa tabla (`docs/plataforma/base-de-datos.md`). El plan Free de
+   Supabase pausa el proyecto a los 7 días sin actividad y un `SELECT 1` no cuenta como actividad.
+2. Pide `/api/salud` a la app de staging con `SALUD_TOKEN` y exige `"db":"ok"` (Vercel + base con el rol de la app).
+3. Deja un commit de latido (`latido.txt`): GitHub desactiva los cron de un repo público tras 60 días sin commits.
 
-Secret: `STAGING_KEEPALIVE_URL` = pooler en modo sesión (puerto 5432), usuario `bonuslife_keepalive.<ref>`,
+Secrets: `STAGING_URL` y `SALUD_TOKEN` (los mismos de la CI de la app) y `STAGING_KEEPALIVE_URL` = pooler en modo sesión (puerto 5432), usuario `bonuslife_keepalive.<ref>`,
 `?sslmode=require`. La contraseña vive en `.env.supabase` del dev (`BONUSLIFE_KEEPALIVE_PASSWORD_STAGING`).
 
 El backup diario a Backblaze de abajo se activa con la base productiva (P17-2); hasta entonces este repo sólo hace el
@@ -30,7 +32,7 @@ keep-alive.
 1. Exporta la **estructura** del schema `public` (`schema.sql`, con `pg_dump --schema-only`) y **cada
    tabla a CSV**.
 2. Sube todo a `B2_BUCKET_NAME/AAAA-MM-DD/`.
-3. Hace un `SELECT 1` para que Supabase no pause el proyecto por inactividad.
+3. Escribe el latido en `heartbeats` (y poda los de más de 30 días) para que Supabase no pause el proyecto.
 
 ## Puesta en marcha
 
