@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Cliente de Postgres
         run: command -v psql || (sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client)
       - name: Latido en la base de staging (escritura real, sólo en heartbeats)
